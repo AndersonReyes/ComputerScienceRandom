@@ -6,11 +6,9 @@ pub trait UF {
     /// add connection between p and q
     fn union(&mut self, p: u32, q: u32);
     /// find component of p
-    fn find(&self, p: u32) -> u32;
+    fn find(&mut self, p: u32) -> u32;
     /// is p connencted to q?
-    fn connected(&self, p: u32, q: u32) -> bool;
+    fn connected(&mut self, p: u32, q: u32) -> bool;
     /// number of components
     fn count(&self) -> u32;
 }
-
-
