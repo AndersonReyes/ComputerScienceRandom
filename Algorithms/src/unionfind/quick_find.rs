@@ -4,12 +4,14 @@ use super::UF;
 pub struct QuickFindUF {
     sites: Vec<u32>,
     components: u32,
-
 }
 
 impl UF for QuickFindUF {
     fn new(n: u32) -> Self {
-        QuickFindUF { sites: (0..n).collect(), components: n }
+        QuickFindUF {
+            sites: (0..n).collect(),
+            components: n,
+        }
     }
 
     fn union(&mut self, p: u32, q: u32) {
@@ -65,7 +67,6 @@ mod tests {
         assert_eq!(uf.connected(1, 2), false);
         assert_eq!(uf.connected(2, 1), false);
     }
-
 
     #[test]
     fn union() {

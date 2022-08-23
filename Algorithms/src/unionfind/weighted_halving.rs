@@ -6,12 +6,16 @@ use super::UF;
 pub struct WeightedWithHalvingUF {
     sites: Vec<u32>,
     components: u32,
-    sizes: Vec<u32>
+    sizes: Vec<u32>,
 }
 
 impl UF for WeightedWithHalvingUF {
     fn new(n: u32) -> Self {
-        WeightedWithHalvingUF { sites: (0..n).collect(), components: n, sizes: vec![1;n as usize] }
+        WeightedWithHalvingUF {
+            sites: (0..n).collect(),
+            components: n,
+            sizes: vec![1; n as usize],
+        }
     }
 
     fn union(&mut self, p: u32, q: u32) {
@@ -19,8 +23,13 @@ impl UF for WeightedWithHalvingUF {
         let q_root = self.find(q);
 
         if self.sizes[p_root as usize] >= self.sizes[q_root as usize] {
-            self.sizes[p_root as usize] += self.sites[q_root as usize];
+            self.sizes[p_root as usize] += self.sizes[q_root as usize];
+            self.sizes[q_root as usize] = 0;
             self.sites[q_root as usize] = p_root;
+        } else {
+            self.sizes[q_root as usize] += self.sizes[p_root as usize];
+            self.sizes[p_root as usize] = 0;
+            self.sites[p_root as usize] = q_root;
         }
         self.components -= 1;
     }
@@ -41,7 +50,6 @@ impl UF for WeightedWithHalvingUF {
     fn count(&self) -> u32 {
         self.components
     }
-
 }
 
 #[cfg(test)]
@@ -52,14 +60,19 @@ mod tests {
     fn count() {
         let mut uf = WeightedWithHalvingUF::new(2);
         assert_eq!(uf.count(), 2);
-        uf.union(0, 1);
-        assert_eq!(uf.count(), 1);
+        uf.components = 10;
+        assert_eq!(uf.count(), 10);
     }
 
     #[test]
     fn new() {
         let uf = WeightedWithHalvingUF::new(2);
+        assert_eq!(uf.sizes, vec![1, 1]);
         assert_eq!(uf.count(), 2);
+        assert_eq!(uf.sites.len(), 2);
+        assert_eq!(uf.sizes.len(), 2);
+        assert_eq!(uf.sites[0], 0);
+        assert_eq!(uf.sites[1], 1);
     }
 
     #[test]
@@ -68,6 +81,8 @@ mod tests {
         for i in 0..3 {
             assert_eq!(uf.connected(i, i), true);
         }
+
+        assert_eq!(uf.sites, vec![0, 1, 2]);
         assert_eq!(uf.connected(0, 2), false);
         assert_eq!(uf.connected(2, 0), false);
         assert_eq!(uf.connected(1, 2), false);
@@ -77,10 +92,35 @@ mod tests {
     #[test]
     fn union() {
         let mut uf = WeightedWithHalvingUF::new(3);
-        uf.union(0, 1);
+        uf.union(1, 0);
 
-        assert_eq!(uf.connected(0, 1), true);
-        assert_eq!(uf.connected(0, 2), false);
-        assert_eq!(uf.connected(1, 2), false);
+        assert_eq!(uf.sizes, vec![0, 2, 1]);
+        assert_eq!(uf.sites, vec![1, 1, 2]);
+
+        uf.union(0, 2);
+        assert_eq!(uf.sizes, vec![0, 3, 0]);
+        assert_eq!(uf.sites, vec![1, 1, 1])
+    }
+
+    #[test]
+    fn union_with_weights() {
+        let mut uf = WeightedWithHalvingUF::new(5);
+        uf.union(0, 1);
+        uf.union(2, 3);
+        uf.union(2, 4); // should join to 2 since component 2 is bigger
+
+        assert_eq!(uf.sites, vec![0, 0, 2, 2, 2]);
+    }
+
+    #[test]
+    fn find() {
+        let mut uf = WeightedWithHalvingUF::new(7);
+        uf.sites = vec![1, 2, 3, 4, 5, 6, 6];
+
+        // calling find updates roots to grandparents
+        assert_eq!(uf.find(0), 6);
+        assert_eq!(uf.sites, vec![1, 3, 3, 5, 5, 6, 6]);
+        uf.find(0);
+        assert_eq!(uf.sites, vec![1, 5, 3, 5, 5, 6, 6]);
     }
 }
