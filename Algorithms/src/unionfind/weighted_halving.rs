@@ -22,6 +22,10 @@ impl UF for WeightedWithHalvingUF {
         let p_root = self.find(p);
         let q_root = self.find(q);
 
+        if q_root == p_root {
+            return;
+        }
+
         if self.sizes[p_root as usize] >= self.sizes[q_root as usize] {
             self.sizes[p_root as usize] += self.sizes[q_root as usize];
             self.sizes[q_root as usize] = 0;
