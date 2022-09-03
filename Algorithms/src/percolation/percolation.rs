@@ -1,4 +1,4 @@
-use super::unionfind::WeightedWithHalvingUF;
+use crate::unionfind::WeightedWithHalvingUF;
 use crate::unionfind::UF;
 
 fn convert_2d_to_index(n: u32, i: u32, j: u32) -> u32 {
